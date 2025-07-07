@@ -67,9 +67,17 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick, currentView, onView
               >
                 <Menu size={20} />
               </button>
-              <div className="bg-gradient-to-r from-teal-500 to-emerald-600 p-1.5 sm:p-2 rounded-lg border-2 border-black">
-                <BookOpen className="text-white" size={20} />
-              </div>
+              <button
+                onClick={() => onViewChange('social')}
+                className={`p-1.5 sm:p-2 rounded-lg border-2 border-black transition-colors ${
+                  currentView === 'social'
+                    ? 'bg-pink-500 text-white'
+                    : 'bg-gradient-to-r from-teal-500 to-emerald-600 text-white hover:from-teal-600 hover:to-emerald-700'
+                }`}
+                title="Ver Comunidad Social"
+              >
+                <BookOpen size={20} />
+              </button>
               <div>
                 <h1 className="text-lg sm:text-2xl font-bold text-gray-800">
                   Mi Blog Personal

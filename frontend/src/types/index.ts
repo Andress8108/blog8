@@ -119,3 +119,9 @@ export interface ImagesResponse {
   images: CharacterImage[];
   pagination?: PaginationInfo;
 }
+
+export interface UserWithPosts {
+  user: User;
+  posts: BlogPost[];
+  postsCount: number;
+}

@@ -461,6 +461,39 @@ export const imagesAPI = {
   }
 };
 
+// Social API - New API for social features
+export const socialAPI = {
+  getAllUsers: async () => {
+    try {
+      const response = await apiClient.get('/social/users');
+      const data = handleResponse(response);
+      return data.users || [];
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  getUsersWithPosts: async () => {
+    try {
+      const response = await apiClient.get('/social/users-with-posts');
+      const data = handleResponse(response);
+      return data.usersWithPosts || [];
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  getAllPublicPosts: async () => {
+    try {
+      const response = await apiClient.get('/social/posts');
+      const data = handleResponse(response);
+      return data.posts || [];
+    } catch (error) {
+      handleError(error);
+    }
+  }
+};
+
 // Health check API
 export const healthAPI = {
   check: async () => {

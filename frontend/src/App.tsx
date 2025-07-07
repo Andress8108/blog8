@@ -6,6 +6,7 @@ import { BlogPost } from './components/BlogPost';
 import { Footer } from './components/Footer';
 import { ActivityView } from './components/ActivityView';
 import { Dashboard } from './components/Dashboard';
+import { SocialView } from './components/SocialView';
 import { useAuth } from './context/AuthContext';
 import { postsAPI, activitiesAPI, siteSettingsAPI } from './services/api';
 import { blogPosts } from './data/blogPosts';
@@ -46,6 +47,16 @@ function AppContent() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
+  }, []);
+
+  // Listen for auth modal events from social view
+  useEffect(() => {
+    const handleOpenAuthModal = () => {
+      setIsAuthModalOpen(true);
+    };
+
+    window.addEventListener('openAuthModal', handleOpenAuthModal);
+    return () => window.removeEventListener('openAuthModal', handleOpenAuthModal);
   }, []);
 
   // Load data from API or fallback to default
@@ -128,26 +139,7 @@ function AppContent() {
       case 'activities':
         return <ActivityView key={refreshKey} />;
       case 'social':
-        return (
-          <section className="py-16 px-4 sm:px-6 lg:px-8 pt-32">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
-                  Social
-                </h2>
-                <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
-                  Explora los perfiles y contenido de otros usuarios
-                </p>
-              </div>
-              <div className="text-center py-12 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border-4 border-black">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">Próximamente</h3>
-                <p className="text-gray-600 mb-4">
-                  Esta sección estará disponible pronto para explorar perfiles de otros usuarios
-                </p>
-              </div>
-            </div>
-          </section>
-        );
+        return <SocialView />;
       case 'personal':
         return (
           <section className="py-16 px-4 sm:px-6 lg:px-8 pt-32">

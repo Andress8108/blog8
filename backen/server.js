@@ -19,6 +19,7 @@ const postRoutes = require('./routes/posts');
 const activityRoutes = require('./routes/activities');
 const imageRoutes = require('./routes/images');
 const siteSettingsRoutes = require('./routes/siteSettings');
+const socialRoutes = require('./routes/social');
 
 class Server {
   constructor() {
@@ -121,6 +122,7 @@ class Server {
     this.app.use('/api/activities', activityRoutes);
     this.app.use('/api/images', imageRoutes);
     this.app.use('/api/site-settings', siteSettingsRoutes);
+    this.app.use('/api/social', socialRoutes);
 
     // Ruta para servir archivos estáticos (si es necesario)
     this.app.use('/uploads', express.static('uploads'));

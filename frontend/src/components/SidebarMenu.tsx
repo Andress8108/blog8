@@ -98,12 +98,19 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({
                     onClick={() => onViewChange(item.id as any)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 border-2 border-black ${
                       isActive
-                        ? 'bg-teal-500 text-white shadow-lg'
+                        ? item.id === 'social' 
+                          ? 'bg-pink-500 text-white shadow-lg'
+                          : 'bg-teal-500 text-white shadow-lg'
                         : 'text-gray-700 hover:bg-teal-50 hover:text-teal-600 bg-white'
                     }`}
                   >
                     <Icon size={20} />
                     <span className="font-medium">{item.label}</span>
+                    {item.id === 'social' && (
+                      <span className="ml-auto bg-pink-200 text-pink-800 text-xs px-2 py-1 rounded-full border border-pink-300">
+                        Nuevo
+                      </span>
+                    )}
                   </button>
                 );
               })}
