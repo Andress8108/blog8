@@ -64,15 +64,7 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({
             <div className="p-6 border-b-2 border-gray-200 bg-teal-50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center border-2 border-black">
-                  {user.profileImage ? (
-                    <img 
-                      src={user.profileImage} 
-                      alt="Profile" 
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <User className="text-white" size={20} />
-                  )}
+                  <User className="text-white" size={20} />
                 </div>
                 <div>
                   <p className="font-semibold text-gray-800">{user.name}</p>
