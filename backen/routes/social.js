@@ -5,7 +5,7 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Obtener todos los usuarios registrados (sin información sensible)
+// Obtener todos los usuarios registrados (sin información sensible) - PÚBLICO
 router.get('/users', async (req, res) => {
   try {
     const users = await User.find({ isActive: true })
@@ -25,7 +25,7 @@ router.get('/users', async (req, res) => {
   }
 });
 
-// Obtener usuarios con sus posts públicos
+// Obtener usuarios con sus posts públicos - PÚBLICO
 router.get('/users-with-posts', async (req, res) => {
   try {
     const users = await User.find({ isActive: true })
@@ -71,7 +71,7 @@ router.get('/users-with-posts', async (req, res) => {
   }
 });
 
-// Obtener todos los posts públicos con información del usuario
+// Obtener todos los posts públicos con información del usuario - PÚBLICO
 router.get('/posts', async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
@@ -103,13 +103,13 @@ router.get('/posts', async (req, res) => {
   }
 });
 
-// Obtener posts de un usuario específico
+// Obtener posts de un usuario específico - PÚBLICO
 router.get('/users/:userId/posts', async (req, res) => {
   try {
     const { userId } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (!require('mongoose').Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         success: false,
         error: 'ID de usuario inválido'
@@ -150,6 +150,33 @@ router.get('/users/:userId/posts', async (req, res) => {
     });
   } catch (error) {
     console.error('Error obteniendo posts del usuario:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor'
+    });
+  }
+});
+
+// Obtener estadísticas de la comunidad - PÚBLICO
+router.get('/stats', async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments({ isActive: true });
+    const totalPosts = await Post.countDocuments({ isPublished: true });
+    
+    // Contar total de likes
+    const postsWithLikes = await Post.find({ isPublished: true }).select('likes');
+    const totalLikes = postsWithLikes.reduce((total, post) => total + (post.likes?.length || 0), 0);
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        totalPosts,
+        totalLikes
+      }
+    });
+  } catch (error) {
+    console.error('Error obteniendo estadísticas:', error);
     res.status(500).json({
       success: false,
       error: 'Error interno del servidor'

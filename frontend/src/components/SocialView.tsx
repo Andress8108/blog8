@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Calendar, Heart, Eye, MessageCircle, Users, Clock, Mail } from 'lucide-react';
+import { User, Calendar, Heart, Eye, MessageCircle, Users, Clock, Mail, UserPlus, Edit3 } from 'lucide-react';
 import { socialAPI, postsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { UserWithPosts, BlogPost } from '../types';
@@ -7,6 +7,7 @@ import { UserWithPosts, BlogPost } from '../types';
 export const SocialView: React.FC = () => {
   const { user } = useAuth();
   const [usersWithPosts, setUsersWithPosts] = useState<UserWithPosts[]>([]);
+  const [stats, setStats] = useState({ totalUsers: 0, totalPosts: 0, totalLikes: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,8 +20,13 @@ export const SocialView: React.FC = () => {
     setError(null);
     
     try {
-      const data = await socialAPI.getUsersWithPosts();
-      setUsersWithPosts(data);
+      const [usersData, statsData] = await Promise.all([
+        socialAPI.getUsersWithPosts(),
+        socialAPI.getStats()
+      ]);
+      
+      setUsersWithPosts(usersData);
+      setStats(statsData);
     } catch (err) {
       console.error('Failed to load social data:', err);
       setError('Error al cargar los datos sociales');
@@ -30,7 +36,12 @@ export const SocialView: React.FC = () => {
   };
 
   const handleLike = async (postId: string) => {
-    if (!user) return;
+    if (!user) {
+      // Si no está autenticado, mostrar modal de login
+      const event = new CustomEvent('openAuthModal');
+      window.dispatchEvent(event);
+      return;
+    }
     
     try {
       await postsAPI.toggleLike(postId);
@@ -104,33 +115,48 @@ export const SocialView: React.FC = () => {
               Comunidad Social
             </h2>
           </div>
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-4">
             Descubre y conecta con otros miembros de nuestra comunidad. 
             Explora sus historias, pensamientos y experiencias compartidas.
           </p>
+          
+          {/* Public Access Notice */}
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+            <p className="text-blue-800 text-sm">
+              <strong>📖 Acceso público:</strong> Puedes ver todos los posts sin registrarte. 
+              {!user && (
+                <span>
+                  {' '}Para crear posts y dar likes, 
+                  <button 
+                    onClick={() => {
+                      const event = new CustomEvent('openAuthModal');
+                      window.dispatchEvent(event);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 font-semibold underline"
+                  >
+                    regístrate aquí
+                  </button>.
+                </span>
+              )}
+            </p>
+          </div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
           <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-6 rounded-lg border-2 border-black text-center">
             <Users size={32} className="mx-auto mb-2" />
-            <h3 className="text-2xl font-bold">{usersWithPosts.length}</h3>
-            <p className="text-blue-100">Usuarios Activos</p>
+            <h3 className="text-2xl font-bold">{stats.totalUsers}</h3>
+            <p className="text-blue-100">Usuarios Registrados</p>
           </div>
           <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-6 rounded-lg border-2 border-black text-center">
             <MessageCircle size={32} className="mx-auto mb-2" />
-            <h3 className="text-2xl font-bold">
-              {usersWithPosts.reduce((total, userWithPosts) => total + userWithPosts.postsCount, 0)}
-            </h3>
+            <h3 className="text-2xl font-bold">{stats.totalPosts}</h3>
             <p className="text-green-100">Posts Publicados</p>
           </div>
           <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-lg border-2 border-black text-center">
             <Heart size={32} className="mx-auto mb-2" />
-            <h3 className="text-2xl font-bold">
-              {usersWithPosts.reduce((total, userWithPosts) => 
-                total + userWithPosts.posts.reduce((postTotal, post) => 
-                  postTotal + (post.likes?.length || 0), 0), 0)}
-            </h3>
+            <h3 className="text-2xl font-bold">{stats.totalLikes}</h3>
             <p className="text-purple-100">Likes Totales</p>
           </div>
         </div>
@@ -143,14 +169,29 @@ export const SocialView: React.FC = () => {
               Aún no hay usuarios con posts públicos
             </h3>
             <p className="text-gray-500 mb-4">
-              Sé el primero en compartir tu historia con la comunidad
+              {user 
+                ? 'Sé el primero en compartir tu historia con la comunidad'
+                : 'Regístrate y sé el primero en compartir tu historia'
+              }
             </p>
-            {user && (
+            {user ? (
               <button
                 onClick={() => window.location.hash = '#dashboard'}
-                className="bg-pink-500 text-white px-6 py-2 rounded-lg border-2 border-black hover:bg-pink-600 transition-colors"
+                className="bg-pink-500 text-white px-6 py-2 rounded-lg border-2 border-black hover:bg-pink-600 transition-colors flex items-center gap-2 mx-auto"
               >
+                <Edit3 size={16} />
                 Crear Mi Primer Post
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  const event = new CustomEvent('openAuthModal');
+                  window.dispatchEvent(event);
+                }}
+                className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-lg border-2 border-black hover:from-pink-600 hover:to-purple-700 transition-colors flex items-center gap-2 mx-auto"
+              >
+                <UserPlus size={16} />
+                Registrarse para Crear Posts
               </button>
             )}
           </div>
@@ -253,15 +294,18 @@ export const SocialView: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-3">
-                          {user && (
-                            <button
-                              onClick={() => handleLike(post._id || post.id)}
-                              className="flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors px-3 py-1 rounded-full hover:bg-red-50 border border-red-200"
-                            >
-                              <Heart size={16} className={post.likes && post.likes.length > 0 ? 'fill-current' : ''} />
-                              <span className="text-sm font-medium">{post.likes?.length || 0}</span>
-                            </button>
-                          )}
+                          <button
+                            onClick={() => handleLike(post._id || post.id)}
+                            className={`flex items-center gap-1 transition-colors px-3 py-1 rounded-full border ${
+                              user 
+                                ? 'text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 cursor-pointer'
+                                : 'text-gray-400 border-gray-200 cursor-pointer'
+                            }`}
+                            title={user ? 'Dar like' : 'Inicia sesión para dar like'}
+                          >
+                            <Heart size={16} className={post.likes && post.likes.length > 0 ? 'fill-current' : ''} />
+                            <span className="text-sm font-medium">{post.likes?.length || 0}</span>
+                          </button>
                         </div>
                       </div>
                     </article>
@@ -272,24 +316,48 @@ export const SocialView: React.FC = () => {
           </div>
         )}
 
-        {/* Call to Action */}
+        {/* Call to Action for Non-Authenticated Users */}
         {!user && (
           <div className="mt-12 text-center bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border-2 border-black p-8">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">
               ¡Únete a Nuestra Comunidad!
             </h3>
             <p className="text-gray-600 mb-6">
-              Regístrate para compartir tus propias historias y conectar con otros miembros
+              Regístrate para compartir tus propias historias, dar likes y conectar con otros miembros
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => {
+                  const event = new CustomEvent('openAuthModal');
+                  window.dispatchEvent(event);
+                }}
+                className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 border-2 border-black flex items-center gap-2 justify-center"
+              >
+                <UserPlus size={20} />
+                Registrarse Ahora
+              </button>
+              <div className="text-sm text-gray-500 flex items-center justify-center">
+                <span>✨ Es gratis y solo toma 1 minuto</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Call to Action for Authenticated Users */}
+        {user && (
+          <div className="mt-12 text-center bg-gradient-to-r from-teal-50 to-emerald-50 rounded-lg border-2 border-black p-8">
+            <h3 className="text-2xl font-bold text-gray-800 mb-4">
+              ¡Comparte Tu Historia!
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Tienes algo interesante que contar. Crea tu primer post y conecta con la comunidad.
             </p>
             <button
-              onClick={() => {
-                // Trigger auth modal - you'll need to pass this function from parent
-                const event = new CustomEvent('openAuthModal');
-                window.dispatchEvent(event);
-              }}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 border-2 border-black"
+              onClick={() => window.location.hash = '#dashboard'}
+              className="bg-gradient-to-r from-teal-500 to-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-teal-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 border-2 border-black flex items-center gap-2 mx-auto"
             >
-              Registrarse Ahora
+              <Edit3 size={20} />
+              Crear Mi Post
             </button>
           </div>
         )}

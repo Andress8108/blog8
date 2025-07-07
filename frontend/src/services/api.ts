@@ -461,7 +461,7 @@ export const imagesAPI = {
   }
 };
 
-// Social API - New API for social features
+// Social API - PÚBLICO (no requiere autenticación para ver)
 export const socialAPI = {
   getAllUsers: async () => {
     try {
@@ -488,6 +488,16 @@ export const socialAPI = {
       const response = await apiClient.get('/social/posts');
       const data = handleResponse(response);
       return data.posts || [];
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  getStats: async () => {
+    try {
+      const response = await apiClient.get('/social/stats');
+      const data = handleResponse(response);
+      return data.stats || { totalUsers: 0, totalPosts: 0, totalLikes: 0 };
     } catch (error) {
       handleError(error);
     }
